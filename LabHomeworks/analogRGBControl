@@ -1,0 +1,41 @@
+const int redPin = 6;
+const int greenPin = 10;
+const int bluePin = 11;
+int redValue = 0;
+int greenValue = 0;
+int blueValue = 0;
+const int redPotPin = A0;
+const int greenPotPin = A1;
+const int bluePotPin = A2;
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  redValue = analogRead(redPotPin);
+  greenValue = analogRead(greenPotPin);
+  blueValue = analogRead(bluePotPin);
+  redValue = map(redValue, 0, 1023, 0, 255);
+  greenValue = map(greenValue, 0, 1023, 0, 255);
+  blueValue = map(blueValue, 0, 1023, 0, 255);
+  Serial.print("Red Potentiometer: ");
+  Serial.println(redValue);
+  Serial.print("Green Potentiometer: ");
+  Serial.println(greenValue);
+  Serial.print("Blue Potentiometer: ");
+  Serial.println(blueValue);
+  setColor(redValue, greenValue, blueValue);
+}
+
+void setColor(int red, int green, int blue) {
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+}
+
