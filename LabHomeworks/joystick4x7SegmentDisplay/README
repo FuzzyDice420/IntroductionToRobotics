@@ -1,0 +1,12 @@
+Task: Individually controlling each digit of the segment with the joystick
+a. Using the X-axis, cycle through the digits and chose which one to modify. Light up the
+DP led of the current position
+b. Press the button to lock on the selected digit
+c. After that, use the Y-axis to modify the value of the digit, both up and down.
+d. Press the button again to unlock the selection and be able to cycle through the 4 digits
+again
+
+4. Notes:
+a. The X and Y axis must be used exclusively. When you cycle through the digits, you
+cannot modify the value. When you are locked in on a digit, you cannot switch to another
+one without pressing the button
