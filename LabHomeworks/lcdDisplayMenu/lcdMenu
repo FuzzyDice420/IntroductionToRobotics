@@ -1,0 +1,284 @@
+#include <LiquidCrystal.h>
+
+// lcd pins
+const int rsPin = 12;
+const int ePin = 11;
+const int d4Pin = 5;
+const int d5Pin = 4;
+const int d6Pin = 3;
+const int d7Pin = 2;
+
+LiquidCrystal lcd(rsPin, ePin, d4Pin, d5Pin, d6Pin, d7Pin);
+
+// joystick pins
+const int pinX = A0;
+const int pinY = A1;
+const int pinSw = A2;
+
+// joystick values
+//int switchValue = 0;
+int xValue = 0;
+int yValue = 0;
+int swState = LOW;
+int lastSwState = LOW;
+bool joyMovedX = false;
+bool joyMovedY = false;
+int minXThreshold = 400;
+int maxXThreshold = 600;
+int minYThreshold = 400;
+int maxYThreshold = 600;
+
+int lives = 3;
+int startingLevelValue = 0;
+int currentLevel = 0;
+int highScore = 0;
+
+int alreadyRun = 0;
+unsigned long previousMillis = 0;
+unsigned long startMillis = 0;
+unsigned long lastDebounceTime = 0;
+
+// States for menus:
+// 0 - loadMenu(), 1 - loadGame(), 2 - endGame(), 3 - loadSettings()
+int menuState = 0;
+
+// Cursor positions:
+class cursorPos {
+ public:
+  int row = 0;
+  int col = 0;
+};
+
+cursorPos cp;
+
+void cleanUp() {
+  lcd.setCursor(0, 0);
+  lcd.print("                ");
+  lcd.setCursor(0, 1);
+  lcd.print("                ");
+}
+
+void loadMenu() {
+  cleanUp();
+  lcd.setCursor(cp.col, cp.row);
+  lcd.print(">");
+  lcd.setCursor(1, 0);
+  lcd. print("Start");
+  lcd. setCursor(8, 0);
+  lcd.print("Settings");
+  lcd.setCursor(1, 1);
+  lcd.print("HighScore");
+}
+
+void loadGame() {
+  alreadyRun = 1;
+  if (millis() - startMillis < 11000) {
+    cleanUp();
+    int score = 0;
+    unsigned long startTime = millis();
+    unsigned long endTime = startTime;
+  
+    lcd.setCursor(0, 0);
+    lcd.print("Lives: ");
+    lcd.setCursor(6, 0);
+    lcd.print(lives);
+    lcd.setCursor(8, 0);
+    lcd.print("Level:");
+    lcd.setCursor(14, 0);
+    lcd.print(currentLevel);
+    lcd.setCursor(0, 1);
+    lcd.print("Score:");
+    lcd.setCursor(6, 1);
+    
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= 5000) {
+      currentLevel++;
+      previousMillis = currentMillis;
+    }
+    score = currentLevel * 3;
+    lcd.print(score);
+    if (score > highScore) {
+      highScore = score;
+    }
+    
+    swState = digitalRead(pinSw);
+    if (swState != lastSwState) {
+      if (swState == LOW) {
+        menuState = 0;
+      }
+    }
+    lastSwState = swState;   
+  }
+  else {
+    menuState = 2;
+  }
+}
+
+void endGame() {
+  cleanUp();
+  lcd.setCursor(0, 0);
+  lcd.print("Game Over!");
+  lcd. setCursor(0, 1);
+  lcd.print("Press button");
+
+  swState = digitalRead(pinSw);
+  if (swState != lastSwState) {
+    if (swState == LOW) {
+      menuState = 0;
+    }
+  }
+  lastSwState = swState;
+}
+
+void loadSettings() {
+  cleanUp();
+  lcd.setCursor(0, 0);
+  lcd.print("StartingLevel: ");
+  lcd.setCursor(15, 0);
+  lcd.print(startingLevelValue);
+
+  if (xValue < minXThreshold && joyMovedX == false) {
+      if (startingLevelValue > 0) {
+          startingLevelValue--;
+      } else {
+          startingLevelValue = 9;
+      }
+      joyMovedX = true;
+    }
+  
+  if (xValue > maxXThreshold && joyMovedX == false) {
+    if (startingLevelValue < 9) {
+      startingLevelValue++;
+    }
+    else {
+      startingLevelValue = 0;
+    }
+    joyMovedX = true;
+  }
+
+  if (xValue >= minXThreshold && xValue <= maxXThreshold) {
+    joyMovedX = false;
+  }
+
+  swState = digitalRead(pinSw);
+  if (swState != lastSwState) {
+    if (swState == LOW) {
+      menuState = 0;
+    }
+  }
+  lastSwState = swState;
+}
+
+void loadHighScore() {
+  cleanUp();
+  lcd.setCursor(0, 0);
+  lcd.print("Highest score:");
+  lcd.setCursor(0, 1);
+  lcd.print(highScore);
+
+  swState = digitalRead(pinSw);
+  if (swState != lastSwState) {
+    if (swState == LOW) {
+      menuState = 0;
+    }
+  }
+  lastSwState = swState;
+}
+
+void menuLoader(int menuState) {
+  if (menuState == 0) {
+    loadMenu();
+  }
+  else if (menuState == 1) {
+    loadGame();
+  }
+  else if (menuState == 2) {
+    endGame();
+  }
+  else if (menuState == 3) {
+    loadHighScore();
+  }
+  else {
+    loadSettings();
+  }
+}
+
+void setup() {
+  //set up the LCD's number of columns and rows
+  lcd.begin(16, 2);
+  cleanUp();
+  pinMode(pinSw, INPUT_PULLUP);
+  Serial.begin(9600);
+}
+
+void loop() {
+  xValue = analogRead(pinX);
+  yValue = analogRead(pinY);
+  startMillis = millis();
+  //Serial.println(xValue);
+  //Serial.println(yValue);
+  Serial.println(alreadyRun);
+  menuLoader(menuState);
+  if (xValue < minXThreshold && joyMovedX == false) {
+    if (cp.col == 0 && cp.row == 0) {
+      cp.col = 0;
+      cp.row = 1;
+    }
+    else if (cp.col == 7) {
+      cp.col = 0;
+      cp.row = 0;
+    }
+    else if(cp.col == 0 && cp.row == 1){
+      cp.col = 7;
+      cp.row = 0;
+    }
+    lcd.setCursor(cp.col, cp.row);
+    joyMovedX = true;
+  }
+  
+  if (xValue > maxXThreshold && joyMovedX == false) {
+    if (cp.col == 0 && cp.row == 0) {
+      cp.col = 7;
+      cp.row = 0;
+    }
+    else if (cp.col == 7) {
+      cp.col = 0;
+      cp.row = 1;
+    }
+    else if (cp.col == 0 && cp.row == 1){
+      cp.col = 0;
+      cp.row = 0;
+    }
+    lcd.setCursor(cp.col, cp.row);
+    joyMovedX = true;
+  }
+
+  if (xValue >= minXThreshold && xValue <= maxXThreshold) {
+    joyMovedX = false;
+  }
+
+  unsigned long startTime = millis();
+  unsigned long endTime = startTime;
+  Serial.println(swState);
+  if (digitalRead(pinSw) != lastSwState) {
+    lastDebounceTime = millis();
+  }
+  if (millis() - lastDebounceTime > 100) {
+    if (swState == LOW && (cp.col == 0 && cp.row == 0)) {  
+      if (alreadyRun == 0) {
+        startMillis = millis();
+        Serial.print("Timp: ");
+        Serial.println(startMillis);
+      }     
+      menuState = 1;
+    }
+    if (swState == LOW && (cp.col == 7 && cp.row == 0)) {
+      menuState = 4;
+    }
+    if (swState == LOW && (cp.col == 0 && cp.row == 1)) {
+      menuState = 3;
+    }
+    swState = digitalRead(pinSw);
+  }
+  lastSwState = swState;
+}
