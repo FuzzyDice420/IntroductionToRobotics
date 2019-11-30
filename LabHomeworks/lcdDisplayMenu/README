@@ -1,0 +1,28 @@
+3. Task: create a menu in the LCD which you scroll through with the joystick. The menu
+structure should be the following:
+a. Start Game. It will show 3 things on the same screen:
+i. Lives: 3
+ii. Level: = startingLevelValue, set up in settings. Default is 0
+After 10 seconds, the game is over. Print “congratulations, you
+finished the game. Press button to exit”.
+Level gets incremented by 1 every 5 seconds. Remember to
+update the score.
+iii. Score: = Level * 3.
+b. HighScore:
+i. Initially, we have 0
+ii. Update it when the game is done. Highest possible score should be
+achieved by starting at a higher level.
+iii. Optional: save the value in eeprom (google it).
+c. Settings
+i. Optional: Enter name. The name should be shown in
+ii. Starting level: Set the starting level value
+
+4. Notes:
+a. Scrolling through the menu is done with a single axis
+b. Entering a category is done by pressing the button or using the OTHER axis
+c. You should have “>” when scrolling through the menu. The joystick should move
+the arrow indicating/selecting the category in which you want to enter.
+When pressing the button, you enter the option with the arrow next to it.
+d. Example of menu WITH DIFFERENT SETTINGS. Do not replicate it, it’s just for
+informative purposes. You can also see the game (next homework, first project)
+and better understand the purpose of the menu:
